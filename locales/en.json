@@ -1,0 +1,16 @@
+{
+  "start_owner": "Hello, owner!\nI am your personal assistant.\nCommands: /start /help /id /restart /summary",
+  "start_public": "Hello! I am AideBot, an AI assistant created by Evgenii Bykov, a full‑stack developer. I can answer questions about my creator and demonstrate his development skills. Feel free to ask anything!",
+  "help_owner": "Help:\nI use GigaChat to answer questions.\nCommands: /start /help /id /restart /summary",
+  "help_public": "Help:\nI can tell you about my creator, Evgenii Bykov, a full‑stack developer. Ask me anything!",
+  "id_response": "ID: {user_id}",
+  "id_denied": "Command available only to the owner.",
+  "summary_usage": "Usage: /summary <messenger> <user_id>",
+  "summary_invalid_messenger": "Invalid messenger. Use 'telegram' or 'max'.",
+  "summary_invalid_uid": "User ID must contain only digits.",
+  "summary_not_found": "Conversation not found.",
+  "unknown_command": "Unknown command.",
+  "gigachat_error": "Error communicating with GigaChat. Please try again later.",
+  "internal_error": "Internal error. Please try again later.",
+  "rate_limit": "Too many requests. Please wait."
+}
