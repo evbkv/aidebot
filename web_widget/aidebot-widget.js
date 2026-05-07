@@ -113,7 +113,7 @@
             height: 70vh;
             border: 4px solid transparent;
             background: linear-gradient(white, white) padding-box,
-                        linear-gradient(270deg, #009fff, #ec2f4b) border-box;
+                        linear-gradient(270deg, #808080, #E74C3C) border-box;
         }
         .ab-chat-window::before {
             content: '';
@@ -190,7 +190,7 @@
         }
         .ab-start-form button {
             width: 100%;
-            background: linear-gradient(270deg, #009fff, #ec2f4b);
+            background: linear-gradient(270deg, #808080, #E74C3C);
             color: white;
             border: none;
             padding: 12px;
@@ -219,7 +219,7 @@
             clear: both;
         }
         .ab-message.user {
-            background: #abdfff;
+            background: #fadcd9;
             float: right;
         }
         .ab-message.bot {
@@ -245,7 +245,7 @@
             height: 42px;
             border-radius: 50%;
             border: none;
-            background: #009fff;
+            background: #E74C3C;
             color: white;
             font-size: 1.4rem;
             cursor: pointer;
@@ -255,14 +255,14 @@
             transition: background 0.2s;
         }
         .ab-circle-btn:hover {
-            background: #0082d0;
+            background: #d43120;
         }
         .ab-circle-btn.danger {
-            background: #ec2f4b;
+            background: #808080;
             display: none;
         }
         .ab-circle-btn.danger:hover {
-            background: #c30824;
+            background: #646464;
         }
         @media (max-width: 800px) {
             .ab-chat-window {
@@ -337,8 +337,8 @@
                         <div class="ab-messages" id="ab-messages"></div>
                         <div class="ab-input-row">
                             <input type="text" id="ab-message-input" placeholder="${TEXTS.messageInputPlaceholder}">
-                            <button class="ab-circle-btn" id="ab-send-message">➤</button>
-                            <button class="ab-circle-btn danger" id="ab-end-session">✕</button>
+                            <button class="ab-circle-btn" id="ab-send-message"></button>
+                            <button class="ab-circle-btn danger" id="ab-end-session"></button>
                         </div>
                     </div>
                 </div>
