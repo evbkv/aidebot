@@ -1,6 +1,6 @@
 # AideBot
 
-AideBot is a multi‑platform AI assistant that mimics a specific persona. It currently supports **Telegram** and **MAX** messengers, uses **GigaChat** as the LLM backend, and stores conversation history locally.
+AideBot is a multi‑platform AI assistant that mimics a specific persona. It currently supports **Telegram**, **MAX** messengers, and a **web widget** (embeddable chat). It uses **GigaChat** as the LLM backend and stores conversation history locally.
 
 ## Features
 
@@ -9,8 +9,9 @@ AideBot is a multi‑platform AI assistant that mimics a specific persona. It cu
 - Conversation context (last 5 messages) preserved across restarts.
 - Rate limiting (10 messages per minute per user).
 - Caching of repeated questions to save API calls.
-- Internationalization ready (currently supports English and Russian; can be extended).
-- Utility script to flush pending MAX messages without responding.
+- Internationalization ready (supports English and Russian; can be extended).
+- **Web widget** – embeddable chat interface for your website.
+- Configurable file logging (`LOG_TO_FILE`).
 
 ## Project Structure
 
@@ -18,6 +19,7 @@ AideBot is a multi‑platform AI assistant that mimics a specific persona. It cu
 .
 ├── config.py                # Configuration (tokens, user IDs, flags)
 ├── flush_max.py             # Utility to flush pending MAX messages
+├── INSTALL.md               # VPS deployment guide
 ├── LICENSE.txt              # GPLv3 license
 ├── locales/                 # Translation files
 │   ├── en.json
@@ -28,28 +30,35 @@ AideBot is a multi‑platform AI assistant that mimics a specific persona. It cu
 ├── requirements.txt         # Python dependencies
 ├── run.bat                  # Windows launcher
 ├── run.sh                   # Linux/macOS launcher
-└── src/                     # Source modules
-    ├── base_handler.py      # Abstract messenger handler
-    ├── cache.py             # Simple TTL cache
-    ├── context.py           # Conversation history management
-    ├── dispatcher.py        # Command and message router
-    ├── i18n.py              # Internationalization helper
-    ├── llm.py               # LLM abstraction layer (GigaChat)
-    ├── max_handler.py       # MAX messenger implementation
-    ├── notifier.py          # New‑user notifications
-    ├── prompts.py           # Prompt templates (Russian)
-    ├── public_chat.py       # Public user logic (persona + context)
-    ├── storage.py           # Chat log persistence
-    ├── telegram_handler.py  # Telegram implementation
-    └── utils.py             # Utilities (validation, rate limit, etc.)
+├── src/                     # Source modules
+│   ├── base_handler.py      # Abstract messenger handler
+│   ├── cache.py             # Simple TTL cache
+│   ├── context.py           # Conversation history management
+│   ├── dispatcher.py        # Command and message router
+│   ├── i18n.py              # Internationalization helper
+│   ├── llm.py               # LLM abstraction layer (GigaChat)
+│   ├── max_handler.py       # MAX messenger implementation
+│   ├── notifier.py          # New‑user notifications
+│   ├── prompts.py           # Prompt templates (Russian)
+│   ├── public_chat.py       # Public user logic (persona + context)
+│   ├── storage.py           # Chat log persistence
+│   ├── telegram_handler.py  # Telegram implementation
+│   ├── utils.py             # Utilities (validation, rate limit, etc.)
+│   └── web_handler.py       # Web widget backend (Flask)
+└── web_widget/              # Frontend widget files
+    ├── aidebot-widget.js
+    ├── avatar.png
+    ├── evbkv.html
+    └── start-server.bat
 ```
 
 ## Prerequisites
 
 - Python 3.8 or higher
 - A GigaChat API key (get it from [Sberbank](https://developers.sber.ru/portal/products/gigachat))
-- Telegram bot token (from [@BotFather](https://t.me/BotFather))
-- MAX bot token and API base URL (if using MAX)
+- Telegram bot token (from [@BotFather](https://t.me/BotFather)) – optional
+- MAX bot token and API base URL – optional
+- A web server (if you want to host the widget) – optional
 
 ## Installation
 
@@ -73,11 +82,12 @@ AideBot is a multi‑platform AI assistant that mimics a specific persona. It cu
 
 4. Configure the bot:
    - Edit `config.py` and fill in your tokens, user IDs, and enable/disable messengers.
-   - Modify `persona.txt` to describe the persona you want the bot to imitate (currently in English, about the creator).
+   - Modify `persona.txt` to describe the persona you want the bot to imitate.
+   - Set `WEB_ENABLED = True` if you plan to use the web widget.
 
 5. (Optional) Add more languages:
    - Create a new JSON file in `locales/` (e.g., `de.json`) with the same keys as `en.json`.
-   - The bot will use the user’s language code from Telegram (falls back to `en`).
+   - The bot will use the user’s language code from Telegram (falls back to `ru`).
 
 ## Running the Bot
 
@@ -94,7 +104,10 @@ chmod +x run.sh
 ./run.sh
 ```
 
-The bot will start polling for enabled messengers. Telegram runs in a background thread; MAX runs in the main thread and will restart automatically if it crashes.
+The bot starts:
+- Web widget server on `http://0.0.0.0:5000` (if enabled).
+- MAX polling in a background thread (auto‑restart on crash).
+- Telegram polling in the main thread (if enabled, otherwise a waiting loop).
 
 ## Commands
 
@@ -106,15 +119,20 @@ The bot will start polling for enabled messengers. Telegram runs in a background
 | `/summary <messenger> <user_id>` | Yes | Generate a summary of the conversation with the given user |
 | `/restart` | Yes | Restart the bot (Telegram only) |
 
-## Flushing Pending MAX Messages
+## Web Widget
 
-If you have accumulated many unread messages in MAX (e.g., from testing), the bot may start answering them all at once. To avoid this, you can use the `flush_max.py` utility:
+To embed the chat widget on your website:
 
-```bash
-python flush_max.py
-```
-
-This script will fetch all pending updates from MAX, log them to the console and to `flush_max.log`, **without sending any replies**. It updates the internal marker so that when you later start the main bot, it will begin from the last processed message. Run it until no more updates appear, then stop it (Ctrl+C) and launch the main bot normally.
+1. Copy `web_widget/aidebot-widget.js` and `web_widget/avatar.png` to your web server.
+2. Add the following HTML snippet to your page:
+   ```html
+   <script src="/path/to/aidebot-widget.js"
+           data-api-base="https://your-domain.com/api"
+           data-auto-open-delay="5000"
+           data-health-check-interval="30000"></script>
+   ```
+3. Configure CORS origins in `config.py` (add your website domain to `WEB_ALLOWED_ORIGINS`).
+4. See `INSTALL.md` for a complete deployment guide (reverse proxy, SSL, systemd).
 
 ## Adding a New Messenger
 
@@ -140,6 +158,10 @@ The current version is suitable for personal use and small‑scale projects. For
 
 These enhancements would make the bot production‑ready for higher loads and team environments.
 
+## Screenshot
+
+![Screenshot](screenshot.jpg)
+
 ## Author
 
 [Evgenii Bykov](https://github.com/evbkv)
@@ -152,3 +174,4 @@ This project is licensed under the GNU General Public License v3.0 – see the [
 
 - [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
 - [GigaChat Python SDK](https://pypi.org/project/gigachat/)
+- [Flask](https://flask.palletsprojects.com/)

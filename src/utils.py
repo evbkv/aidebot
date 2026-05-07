@@ -24,7 +24,7 @@ def validate_user_id(uid) -> bool:
 
 def validate_messenger(messenger: str) -> bool:
     """Return True if messenger name is allowed."""
-    return messenger in ("telegram", "max")
+    return messenger in ("telegram", "max", "web")
 
 
 def is_rate_limited(user_id: int, limit: int = 10, period: int = 60) -> bool:
@@ -33,7 +33,6 @@ def is_rate_limited(user_id: int, limit: int = 10, period: int = 60) -> bool:
     if user_id not in _user_requests:
         _user_requests[user_id] = deque()
     dq = _user_requests[user_id]
-    # remove old timestamps
     while dq and dq[0] < now - period:
         dq.popleft()
     if len(dq) >= limit:

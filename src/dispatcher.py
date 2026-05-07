@@ -1,7 +1,7 @@
 # ==================== src/dispatcher.py ====================
 """Main dispatcher: routes messages to commands or AI, checks owner privileges."""
 
-from . import llm, public_chat, utils, context
+from . import llm, public_chat, utils, context, calc
 from gigachat.exceptions import GigaChatException
 from config import TELEGRAM_ALLOWED_USER_ID, TELEGRAM_SUPERUSER_ENABLED, MAX_ALLOWED_USER_ID, MAX_SUPERUSER_ENABLED
 import os
@@ -41,7 +41,7 @@ def _handle_command(cmd: str, args: list, user_id: int, owner_id: int, platform:
         if len(args) != 2:
             return get_text("summary_usage", lang)
         messenger, uid = args[0], args[1]
-        if messenger not in ("telegram", "max"):
+        if messenger not in ("telegram", "max", "web"):
             return get_text("summary_invalid_messenger", lang)
         if not uid.isdigit():
             return get_text("summary_invalid_uid", lang)
@@ -61,7 +61,7 @@ def handle_incoming(text: str, user_id: int, owner_id: int, platform: str, lang:
     try:
         if text.startswith("/"):
             parts = text.strip().split()
-            cmd = parts[0][1:]  # remove leading '/'
+            cmd = parts[0][1:]
             args = parts[1:]
             answer = _handle_command(cmd, args, user_id, owner_id, platform, is_owner, lang)
         else:

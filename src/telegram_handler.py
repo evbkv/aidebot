@@ -23,16 +23,13 @@ class TelegramHandler(MessengerHandler):
 
     def send_message(self, chat_id: int, text: str) -> None:
         """Send a message via Telegram (asynchronous, but called from sync context)."""
-        # This method is called from process_message which may be sync.
-        # We'll schedule an async task; for simplicity we use the application's bot directly.
-        # In practice, this might need to be handled differently.
         import asyncio
         if self.app:
             asyncio.create_task(self.app.bot.send_message(chat_id=chat_id, text=text))
 
     def get_user_language(self, update: Update) -> str:
         """Extract language code from Telegram update."""
-        return update.effective_user.language_code or 'ru'
+        return 'ru'   # Force Russian for consistency
 
     async def _handle_async(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Async handler that wraps the common process_message logic."""
@@ -46,7 +43,6 @@ class TelegramHandler(MessengerHandler):
             os.execl(sys.executable, sys.executable, *sys.argv)
             return
 
-        # Use the common processing method (it will call send_message internally)
         self.process_message(
             user_id=user.id,
             chat_id=chat_id,
@@ -56,10 +52,15 @@ class TelegramHandler(MessengerHandler):
         )
 
     def run_polling(self) -> None:
-        """Start Telegram bot polling."""
+        """Start Telegram bot polling with proper asyncio setup."""
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
         self.app = Application.builder().token(self.token).build()
         self.app.add_handler(MessageHandler(filters.TEXT, self._handle_async))
         logger.info("Telegram polling started")
+        
         self.app.run_polling(
             allowed_updates=Update.ALL_TYPES,
             drop_pending_updates=True,
